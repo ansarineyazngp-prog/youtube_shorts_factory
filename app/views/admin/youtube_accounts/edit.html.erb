@@ -1,0 +1,129 @@
+<% content_for :title, "YouTube OAuth & Notifications • Settings" %>
+
+<div class="max-w-4xl mx-auto space-y-8">
+  <div>
+    <div class="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+      <%= link_to "&larr; Back to Dashboard".html_safe, admin_dashboard_path, class: "hover:text-indigo-400 transition" %>
+      <span>/</span>
+      <span class="text-slate-300">Settings & Integrations</span>
+    </div>
+    <h1 class="text-2xl font-black text-white tracking-tight">Channel & Notification Control</h1>
+    <p class="text-xs text-slate-400">Configure YouTube Data API v3 OAuth2 authorization, daily auto-publish policies, and Telegram/Discord alerts</p>
+  </div>
+
+  <!-- YouTube Channel Authorization Card -->
+  <div class="glass-panel p-6 sm:p-8 rounded-2xl">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-red-600/20 text-red-500 border border-red-500/30 flex items-center justify-center">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-white">YouTube Data API v3 OAuth2</h2>
+          <p class="text-xs text-slate-400">Enables automated background uploads directly to your YouTube Shorts channel</p>
+        </div>
+      </div>
+
+      <% if @account.authorized? %>
+        <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-slow"></span>
+          <span>Authorized & Connected</span>
+        </span>
+      <% else %>
+        <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          <span>Not Connected</span>
+        </span>
+      <% end %>
+    </div>
+
+    <% if @account.authorized? %>
+      <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3 mb-6">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400">Channel Name:</span>
+          <span class="font-bold text-white"><%= @account.channel_title %></span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400">Channel ID:</span>
+          <span class="font-mono text-slate-300"><%= @account.channel_id.presence || "—" %></span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400">OAuth Refresh Token:</span>
+          <span class="text-emerald-400 font-mono">Present (Auto-Refreshing)</span>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400">Token Status:</span>
+          <span class="font-mono text-slate-300">Expires: <%= @account.token_expires_at ? time_ago_in_words(@account.token_expires_at) : "N/A" %></span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <%= button_to connect_admin_youtube_account_path, method: :post, class: "px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition" do %>
+          Re-authenticate with Google
+        <% end %>
+        <%= button_to disconnect_admin_youtube_account_path, method: :delete, data: { turbo_confirm: "Disconnect this channel?" }, class: "px-4 py-2.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-semibold border border-rose-500/30 transition" do %>
+          Disconnect Channel
+        <% end %>
+      </div>
+    <% else %>
+      <div class="p-5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-4 mb-6">
+        <p class="text-xs text-slate-300 leading-relaxed">
+          To enable automated YouTube uploads, configure your Google Cloud project credentials in <code class="text-indigo-400 font-mono">.env</code> or credentials:
+        </p>
+        <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 space-y-1">
+          <p><span class="text-slate-500">YOUTUBE_CLIENT_ID=</span>your_client_id.apps.googleusercontent.com</p>
+          <p><span class="text-slate-500">YOUTUBE_CLIENT_SECRET=</span>your_client_secret</p>
+          <p><span class="text-slate-500">Authorized Redirect URI:</span> <%= admin_youtube_oauth_callback_url rescue "http://localhost:3000/admin/youtube_account/oauth_callback" %></p>
+        </div>
+      </div>
+
+      <%= button_to connect_admin_youtube_account_path, method: :post, class: "px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg shadow-red-600/30 transition flex items-center space-x-2" do %>
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+        <span>Authorize YouTube Channel with Google</span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Automation & Notification Preferences Form -->
+  <div class="glass-panel p-6 sm:p-8 rounded-2xl">
+    <h2 class="text-base font-bold text-white mb-2">Autonomous Execution & Notifications</h2>
+    <p class="text-xs text-slate-400 mb-6">Configure how daily cron runs behave and where publish alerts are sent</p>
+
+    <%= form_with model: [:admin, @account], url: admin_youtube_account_path, method: :patch, local: true, class: "space-y-6" do |f| %>
+      <!-- Default Approval Policy -->
+      <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-bold text-white">Daily Job Auto-Publish Policy</p>
+          <p class="text-xs text-slate-400">If enabled, the daily 9:00 AM cron will publish directly to YouTube without waiting for review</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <%= f.check_box :auto_approve_default, class: "sr-only peer" %>
+          <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+        </label>
+      </div>
+
+      <!-- Discord Webhook -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Discord Webhook URL</label>
+        <%= f.text_field :notification_webhook_url, placeholder: "https://discord.com/api/webhooks/...", class: "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition font-mono" %>
+        <p class="text-[11px] text-slate-500 mt-1">Receive rich visual embed alerts in Discord channel with YouTube Short direct links</p>
+      </div>
+
+      <!-- Telegram Bot Config -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Telegram Bot Token</label>
+          <%= f.text_field :telegram_bot_token, placeholder: "123456789:ABCdefGhI...", class: "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition font-mono" %>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Telegram Chat / Channel ID</label>
+          <%= f.text_field :telegram_chat_id, placeholder: "-100123456789 or @channel", class: "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition font-mono" %>
+        </div>
+      </div>
+
+      <div class="pt-3">
+        <%= f.submit "Save Settings & Automation Policies", class: "w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition cursor-pointer" %>
+      </div>
+    <% end %>
+  </div>
+</div>

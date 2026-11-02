@@ -1,0 +1,221 @@
+<% content_for :title, "#{@short_video.topic} • Short Video Factory" %>
+
+<div class="space-y-6">
+  <!-- Back navigation & Actions Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+        <%= link_to "&larr; Back to Dashboard".html_safe, admin_dashboard_path, class: "hover:text-indigo-400 transition" %>
+        <span>/</span>
+        <span class="text-slate-300 font-mono">Short #<%= @short_video.id %></span>
+        <span>/</span>
+        <span class="px-2 py-0.5 rounded bg-slate-800 text-indigo-400 text-[10px]"><%= @short_video.category %></span>
+      </div>
+      <h1 class="text-2xl font-black text-white tracking-tight"><%= @short_video.topic %></h1>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <% if @short_video.can_approve? %>
+        <%= button_to approve_admin_short_video_path(@short_video), method: :post, class: "px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center space-x-2" do %>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>Approve & Upload to YouTube</span>
+        <% end %>
+      <% end %>
+
+      <%= button_to trigger_pipeline_admin_short_video_path(@short_video), method: :post, class: "px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 transition flex items-center space-x-1.5" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span>Re-run Pipeline</span>
+      <% end %>
+
+      <%= button_to admin_short_video_path(@short_video), method: :delete, data: { turbo_confirm: "Are you sure you want to delete this short?" }, class: "p-2.5 rounded-xl bg-slate-800 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 border border-slate-700 transition" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Pipeline Stepper Visualizer -->
+  <div class="glass-panel p-6 rounded-2xl">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Pipeline Generation Stages</h2>
+      <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold border <%= @short_video.status_color %>">
+        <% if @short_video.processing? %>
+          <span class="w-2 h-2 rounded-full bg-indigo-400 pulse-slow"></span>
+        <% end %>
+        <span><%= @short_video.status.titleize %></span>
+      </span>
+    </div>
+
+    <% 
+      steps = [
+        { key: :draft, label: "Queued Topic" },
+        { key: :scripting, label: "AI Scripting" },
+        { key: :voiceover, label: "Audio TTS" },
+        { key: :visual_generation, label: "Visual Graphics" },
+        { key: :assembling, label: "9:16 Video Assembly" },
+        { key: :ready_for_review, label: "Approval Gate" },
+        { key: :published, label: "YouTube Published" }
+      ]
+      current_idx = @short_video.status_step_index
+    %>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+      <% steps.each_with_index do |step, idx| %>
+        <% 
+          is_completed = (current_idx > idx) || (@short_video.published? && idx == 6)
+          is_active = (current_idx == idx) && !@short_video.failed?
+          is_failed = @short_video.failed? && (current_idx == idx)
+        %>
+        <div class="p-3 rounded-xl border transition flex flex-col justify-between <%= is_completed ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' : (is_active ? 'bg-indigo-950/40 border-indigo-500/60 text-white shadow-lg shadow-indigo-500/10' : (is_failed ? 'bg-rose-950/30 border-rose-500/40 text-rose-300' : 'bg-slate-900/40 border-slate-800 text-slate-500')) %>">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] font-bold">0<%= idx + 1 %></span>
+            <% if is_completed %>
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <% elsif is_active %>
+              <span class="w-2 h-2 rounded-full bg-indigo-400 pulse-slow"></span>
+            <% elsif is_failed %>
+              <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <% end %>
+          </div>
+          <p class="text-xs font-bold tracking-tight"><%= step[:label] %></p>
+        </div>
+      <% end %>
+    </div>
+
+    <% if @short_video.error_message.present? %>
+      <div class="mt-4 p-3 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
+        <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span><%= @short_video.error_message %></span>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left: Video & Audio Preview Column -->
+    <div class="lg:col-span-5 space-y-6">
+      <!-- 9:16 Video Preview Card -->
+      <div class="glass-panel p-5 rounded-2xl flex flex-col items-center">
+        <div class="w-full flex items-center justify-between mb-4">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">Vertical Video Render</h3>
+          <span class="text-[10px] font-mono text-slate-400">1080x1920 (9:16)</span>
+        </div>
+
+        <% if @short_video.video_file.attached? %>
+          <div class="relative w-full max-w-[280px] aspect-[9/16] rounded-2xl overflow-hidden bg-black border border-slate-700 shadow-2xl">
+            <video controls playsinline class="w-full h-full object-cover">
+              <source src="<%= rails_blob_path(@short_video.video_file) %>" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <div class="mt-4 w-full flex items-center justify-between text-xs text-slate-400">
+            <span>Size: <%= number_to_human_size(@short_video.video_file.byte_size) %></span>
+            <%= link_to rails_blob_path(@short_video.video_file, disposition: "attachment"), class: "text-indigo-400 hover:text-indigo-300 font-medium" do %>
+              Download MP4 &darr;
+            <% end %>
+          </div>
+        <% else %>
+          <div class="w-full max-w-[280px] aspect-[9/16] rounded-2xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-6 text-center text-slate-500">
+            <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-3 text-slate-400">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </div>
+            <p class="text-xs font-semibold text-slate-300">Video not rendered yet</p>
+            <p class="text-[11px] text-slate-500 mt-1">Run pipeline to trigger FFmpeg assembly</p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Voiceover Audio Preview -->
+      <div class="glass-panel p-5 rounded-2xl">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">Narration Audio (TTS)</h3>
+        <% if @short_video.audio_file.attached? %>
+          <audio controls class="w-full">
+            <source src="<%= rails_blob_path(@short_video.audio_file) %>" type="audio/mpeg">
+          </audio>
+        <% else %>
+          <p class="text-xs text-slate-500">Audio narration pending generation.</p>
+        <% end %>
+      </div>
+
+      <!-- YouTube Status Card -->
+      <div class="glass-panel p-5 rounded-2xl">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">YouTube Distribution</h3>
+        <% if @short_video.published? %>
+          <div class="p-3.5 rounded-xl bg-red-950/20 border border-red-500/30 space-y-3">
+            <div class="flex items-center space-x-2 text-red-400">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+              <span class="text-xs font-bold">Published on YouTube Shorts</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono">Video ID: <%= @short_video.youtube_video_id %></p>
+            <a href="<%= @short_video.youtube_shorts_url %>" target="_blank" rel="noopener noreferrer" class="block w-full text-center py-2 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-md transition">
+              Watch on YouTube &rarr;
+            </a>
+          </div>
+        <% else %>
+          <p class="text-xs text-slate-400">Waiting for approval and upload dispatch.</p>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Right: Script, Metadata & Scenes Column -->
+    <div class="lg:col-span-7 space-y-6">
+      <!-- Title & SEO Tags -->
+      <div class="glass-panel p-6 rounded-2xl space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Generated Short Title</label>
+          <p class="text-lg font-extrabold text-white"><%= @short_video.title.presence || "—" %></p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Monetization & SEO Tags</label>
+          <div class="flex flex-wrap gap-1.5">
+            <% (@short_video.tags.to_s.split(",")).each do |tag| %>
+              <span class="px-2.5 py-1 rounded-md bg-indigo-950/60 border border-indigo-500/30 text-indigo-300 text-xs font-mono font-medium">
+                #<%= tag.strip.gsub(/^#/, '') %>
+              </span>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">YouTube Description</label>
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 whitespace-pre-line font-mono max-h-40 overflow-y-auto">
+            <%= @short_video.description.presence || "No description yet" %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spoken Narration Script -->
+      <div class="glass-panel p-6 rounded-2xl">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Spoken Voice Script</h3>
+          <span class="text-[11px] font-mono text-slate-400">
+            <%= @short_video.script_text.to_s.split.size %> words (~<%= (@short_video.script_text.to_s.split.size / 2.5).round %>s duration)
+          </span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 leading-relaxed font-sans whitespace-pre-line">
+          <%= @short_video.script_text.presence || "Script generation in progress..." %>
+        </div>
+      </div>
+
+      <!-- Scenes Breakdown -->
+      <% if @metadata["scenes"].present? %>
+        <div class="glass-panel p-6 rounded-2xl">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Scene & Visual Storyboard</h3>
+          <div class="space-y-3">
+            <% @metadata["scenes"].each_with_index do |scene, idx| %>
+              <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start space-x-3">
+                <span class="px-2 py-1 rounded bg-indigo-500/20 text-indigo-400 font-mono text-[10px] font-bold shrink-0">
+                  <%= scene["timestamp"] || "Scene #{idx+1}" %>
+                </span>
+                <div class="space-y-1">
+                  <p class="text-xs font-bold text-white"><%= scene["caption"] %></p>
+                  <p class="text-[11px] text-slate-400 italic font-mono"><%= scene["visual_prompt"] %></p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

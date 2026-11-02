@@ -1,0 +1,66 @@
+<% content_for :title, "New Short • YouTube Shorts Factory" %>
+
+<div class="max-w-2xl mx-auto space-y-6">
+  <div>
+    <div class="flex items-center space-x-2 text-xs text-slate-400 mb-1">
+      <%= link_to "&larr; Back to Dashboard".html_safe, admin_dashboard_path, class: "hover:text-indigo-400 transition" %>
+      <span>/</span>
+      <span class="text-slate-300">New Production Task</span>
+    </div>
+    <h1 class="text-2xl font-black text-white tracking-tight">Create YouTube Short</h1>
+    <p class="text-xs text-slate-400">Configure topic, category, and approval settings to dispatch pipeline</p>
+  </div>
+
+  <div class="glass-panel p-6 sm:p-8 rounded-2xl">
+    <%= form_with model: [:admin, @short_video], url: admin_short_videos_path, local: true, class: "space-y-6" do |f| %>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Topic / Curiosity Hook Prompt</label>
+        <%= f.text_area :topic, rows: 3, placeholder: "e.g., The 3 Psychological Tricks Stores Use to Make You Spend 40% More Money", class: "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition" %>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Category</label>
+          <%= f.select :category, [
+            ["Psychology & Human Behavior", "Psychology"],
+            ["Space & Science Mysteries", "Space & Science"],
+            ["Historical Paradoxes", "History Mysteries"],
+            ["AI & Technology", "Tech & AI"],
+            ["Wealth & Productivity", "Wealth Habits"]
+          ], {}, class: "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition" %>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">YouTube Privacy</label>
+          <%= f.select :privacy_status, [
+            ["Public", "public"],
+            ["Unlisted", "unlisted"],
+            ["Private", "private"]
+          ], {}, class: "w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition" %>
+        </div>
+      </div>
+
+      <!-- Auto Publish Toggle -->
+      <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+        <div>
+          <p class="text-sm font-bold text-white">Direct Auto-Publish</p>
+          <p class="text-xs text-slate-400">If checked, skips manual approval and uploads to YouTube channel upon rendering</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <%= f.check_box :auto_publish, class: "sr-only peer" %>
+          <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+        </label>
+      </div>
+
+      <div class="flex items-center space-x-3 pt-3">
+        <%= button_tag type: :submit, name: "run_now", value: "1", class: "flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition text-center" do %>
+          Generate Short Now
+        <% end %>
+
+        <%= button_tag type: :submit, name: "run_now", value: "0", class: "py-3 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-sm border border-slate-700 transition" do %>
+          Add to Daily Queue
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+  <head>
+    <title><%= content_for(:title) || "YouTube Shorts Factory • Autonomous Studio" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN for instant styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            },
+            colors: {
+              brand: {
+                50: '#eef2ff',
+                500: '#6366f1',
+                600: '#4f46e5',
+                700: '#4338ca'
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <style>
+      body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #090d16; }
+      .glass-panel {
+        background: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .glass-panel-glow {
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.15);
+      }
+      .glow-border {
+        box-shadow: 0 0 20px -2px rgba(239, 68, 68, 0.25);
+      }
+      @keyframes pulseSlow {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      .pulse-slow {
+        animation: pulseSlow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+    </style>
+
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+    <!-- Top Navigation Bar -->
+    <header class="glass-panel sticky top-0 z-50 border-b border-slate-800/80 px-4 lg:px-8 py-3.5">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <a href="<%= admin_dashboard_path %>" class="flex items-center space-x-3 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-rose-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition duration-200">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-extrabold text-lg text-white tracking-tight">SHORTS<span class="text-indigo-400">FACTORY</span></span>
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Autonomous v1.0</span>
+              </div>
+              <p class="text-xs text-slate-400">Daily AI Production Pipeline</p>
+            </div>
+          </a>
+        </div>
+
+        <!-- Center Nav Links -->
+        <nav class="hidden md:flex items-center space-x-1 glass-panel px-3 py-1.5 rounded-full">
+          <%= link_to admin_dashboard_path, class: "px-3.5 py-1.5 text-xs font-semibold rounded-full transition #{current_page?(admin_dashboard_path) ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'}" do %>
+            Dashboard
+          <% end %>
+          <%= link_to admin_short_videos_path, class: "px-3.5 py-1.5 text-xs font-semibold rounded-full transition #{current_page?(admin_short_videos_path) ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'}" do %>
+            All Shorts
+          <% end %>
+          <%= link_to edit_admin_youtube_account_path, class: "px-3.5 py-1.5 text-xs font-semibold rounded-full transition #{current_page?(edit_admin_youtube_account_path) ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-300 hover:text-white hover:bg-slate-800/60'}" do %>
+            YouTube & Settings
+          <% end %>
+        </nav>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center space-x-3">
+          <% account = YoutubeAccount.current %>
+          <% if account.authorized? %>
+            <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-slow"></span>
+              <span><%= account.channel_title.truncate(18) %></span>
+            </div>
+          <% else %>
+            <a href="<%= edit_admin_youtube_account_path %>" class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium hover:bg-amber-500/20 transition">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              </svg>
+              <span>Connect Channel</span>
+            </a>
+          <% end %>
+
+          <%= button_to admin_trigger_daily_job_dashboard_path, method: :post, class: "flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition shadow-sm hover:border-slate-600" do %>
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Run Daily Job</span>
+          <% end %>
+
+          <%= link_to new_admin_short_video_path, class: "flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition hover:scale-102" do %>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Create Short</span>
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <!-- Flash Notifications -->
+    <div class="max-w-7xl mx-auto px-4 lg:px-8 pt-4 w-full">
+      <% if notice.present? %>
+        <div class="mb-4 flex items-center justify-between p-3.5 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-indigo-200 text-sm shadow-lg backdrop-blur-md">
+          <div class="flex items-center space-x-3">
+            <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+            <span><%= notice %></span>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-indigo-400 hover:text-white">&times;</button>
+        </div>
+      <% end %>
+
+      <% if alert.present? %>
+        <div class="mb-4 flex items-center justify-between p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-sm shadow-lg backdrop-blur-md">
+          <div class="flex items-center space-x-3">
+            <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+            <span><%= alert %></span>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-rose-400 hover:text-white">&times;</button>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6">
+      <%= yield %>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-slate-800/80 py-6 px-4 text-center text-xs text-slate-500 mt-12">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          Autonomous YouTube Shorts Factory • Powered by Rails 8, Solid Queue, FFmpeg & YouTube Data API v3
+        </div>
+        <div class="flex items-center space-x-4 text-slate-400">
+          <span>Cron Status: <span class="text-emerald-400 font-mono">SolidQueue::Recurring [Active]</span></span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
